@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC Taxi Trip Duration Predictor 🚖</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom right, #fefefe, #eaf3ff);
+      color: #333;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    /* HEADER SECTION */
+    header {
+    position: relative;
+    text-align: center;
+    color: #000;
+    padding: 270px 20px;
+    overflow: hidden;
+}
+
+header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://images.ctfassets.net/1aemqu6a6t65/f2K63ZhdxIW0o2nvcEXqo/d26f4fc6174e3e9cee47b8a603b1efe5/Skyline-Brooklyn-NYC-Courtesy-Timelapse-Company.jpg?q=75&fm=webp') center/cover no-repeat;
+    filter: blur(2px); /* Adjust the blur amount */
+    z-index: -1;
+}
+
+    header h1 {
+      font-size: 5rem;
+      margin-bottom: 10px;
+      animation: fadeInDown 1.5s ease;
+      color:#eaf3ff;
+    }
+    header p {
+      font-size: 1.5rem;
+      opacity: 0.9;
+      animation: fadeIn 2s ease;
+      color:#eaf3ff;
+    }
+    header img {
+      position: absolute;
+      bottom: -10px;
+      right: 5%;
+      width: 200px;
+      animation: moveTaxi 6s linear infinite;
+      opacity: 0.9;
+    }
+    @keyframes moveTaxi {
+      0% { right: -250px; }
+      50% { right: 5%; }
+      100% { right: -250px; }
+    }
+
+    .btn {
+      background: #000;
+      color: #ffcc00;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 25px;
+      transition: all 0.3s;
+      animation: fadeInUp 2s ease;
+    }
+    .btn:hover {
+      background: #222;
+      transform: scale(1.05);
+    }
+
+    /* FORM SECTION */
+    section {
+      padding: 80px 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .dashboard {
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-radius: 20px;
+      padding: 40px;
+      animation: fadeInUp 1.2s ease;
+      position: relative;
+      min-height: 600px;
+    }
+    .dashboard::before {
+      content: "🚖";
+      position: absolute;
+      top: -25px;
+      left: -25px;
+      font-size: 3rem;
+      transform: rotate(-15deg);
+    }
+    .dashboard h2 {
+      text-align: center;
+      color: #000;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 25px;
+      margin-bottom: 25px;
+    }
+    .input-group label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      outline: none;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    .input-group input:focus, .input-group select:focus {
+      border-color: #ffcc00;
+      box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+    }
+
+    #predictBtn {
+      display: block;
+      margin: 30px auto 0;
+      background: #ffcc00;
+      color: #000;
+      border: none;
+      padding: 14px 45px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    #predictBtn:hover {
+      background: #ffd633;
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    #predictionResult {
+      margin-top: 30px;
+      text-align: center;
+      padding: 20px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #000;
+      min-height: 50px;
+      display: none;
+    }
+    #predictionResult.show {
+      display: block;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1>NYC Taxi Trip Duration Predictor</h1>
+    <p>Estimate your taxi trip time instantly — powered by machine learning 🚕</p>
+    <button class="btn" id="scrollBtn">Predict Duration</button>
+  </header>
+
+  <!-- FORM SECTION -->
+  <section id="formSection">
+    <div class="dashboard">
+      <h2>Enter Trip Details</h2>
+
+      <div class="input-group">
+        <div>
+          <label for="passenger_count">Passenger Count 👥</label>
+          <input type="number" id="passenger_count" placeholder="e.g., 2" min="1" />
+        </div>
+        <div>
+          <label for="pickup_hour">Pickup Hour (0–23) ⏰</label>
+          <input type="number" id="pickup_hour" placeholder="e.g., 15" min="0" max="23" />
+        </div>
+        <div>
+          <label for="pickup_day">Pickup Day (1–31) 📅</label>
+          <input type="number" id="pickup_day" placeholder="e.g., 12" min="1" max="31" />
+        </div>
+        <div>
+          <label for="pickup_month">Pickup Month (1–12) 🌤️</label>
+          <input type="number" id="pickup_month" placeholder="e.g., 5" min="1" max="12" />
+        </div>
+        <div>
+          <label for="distance_km">Distance (km) 📏</label>
+          <input type="number" id="distance_km" placeholder="e.g., 8.5" step="0.1" />
+        </div>
+        <div>
+          <label for="store_and_fwd_flag_Y">Store and Forward Flag 🗂️</label>
+          <select id="store_and_fwd_flag_Y">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="predictBtn">🚖 Predict Trip Duration</button>
+      <div id="predictionResult"></div>
+    </div>
+  </section>
+
+  <script>
+    document.getElementById("scrollBtn").addEventListener("click", function() {
+  // Scroll to the form
+  document.getElementById("formSection").scrollIntoView({ behavior: "smooth" });
+
+  // Trigger the same function as predictBtn
+  document.getElementById("predictBtn").click();
+});
+    document.getElementById("predictBtn").addEventListener("click", function() {
+  const passenger = document.getElementById("passenger_count").value;
+  const hour = document.getElementById("pickup_hour").value;
+  const day = document.getElementById("pickup_day").value;
+  const month = document.getElementById("pickup_month").value;
+  const distance = document.getElementById("distance_km").value;
+  const flag = document.getElementById("store_and_fwd_flag_Y").value;
+  const resultDiv = document.getElementById("predictionResult");
+
+  if (!passenger || !hour || !day || !month || !distance) {
+    resultDiv.textContent = "⚠️ Please fill all fields before predicting!";
+    resultDiv.style.color = "#d32f2f";
+    resultDiv.classList.add("show");  // Make it visible
+    return;
+  }
+
+  // Send data to Flask backend for real prediction
+  fetch('/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      passenger_count: passenger,
+      pickup_hour: hour,
+      pickup_day: day,
+      pickup_month: month,
+      distance_km: distance,
+      store_and_fwd_flag_Y: flag
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      resultDiv.textContent = `❌ Error: ${data.error}`;
+      resultDiv.style.color = "#d32f2f";
+    } else {
+      // Convert seconds to minutes (with 2 decimal places)
+      const minutes = (data.duration / 60).toFixed(2);
+      resultDiv.textContent = `🚕 Estimated Trip Duration: ${minutes} minutes`;
+      resultDiv.style.color = "#000";
+    }
+    resultDiv.classList.add("show");  // Add this line to make div visible
+  })
+  .catch(error => {
+    resultDiv.textContent = `❌ Error: ${error}`;
+    resultDiv.style.color = "#d32f2f";
+    resultDiv.classList.add("show");  // Add this line too
+  });
+});
+
+</script>
+    
+
+</body>
+</html>  
